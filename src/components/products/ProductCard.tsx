@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Product } from "@/data/products";
 
 type ProductCardProps = {
@@ -61,17 +62,12 @@ export default function ProductCard({
             )}
           </div>
 
-          <span
-            className={`rounded-full px-4 py-2 text-xs font-semibold ${
-              product.available
-                ? "bg-[#B84F79] text-white"
-                : "bg-[#EEE8EA] text-[#8D8186]"
-            }`}
-          >
-            {product.available
-              ? "Ver detalles"
-              : "No disponible"}
-          </span>
+<Link
+  href={`/catalogo/${product.id}`}
+  className="rounded-full bg-[#B84F79] px-4 py-2 text-center text-xs font-semibold text-white transition hover:bg-[#963B61]"
+>
+  Ver detalles
+</Link>
         </div>
       </div>
     </article>
