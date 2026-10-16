@@ -11,12 +11,18 @@ export default function ProductCard({
   return (
     <article className="overflow-hidden rounded-2xl border border-[#F0E6E9] bg-white transition hover:shadow-lg">
       <div className="relative flex h-56 items-center justify-center bg-[#F8EDF1]">
-        <span
-          aria-hidden="true"
-          className="text-7xl"
-        >
-          {product.emoji}
-        </span>
+{product.images.length > 0 ? (
+  <img
+    src={product.images[0]}
+    alt={product.name}
+    className="h-full w-full object-cover"
+    loading="lazy"
+  />
+) : (
+  <span aria-hidden="true" className="text-7xl">
+    {product.emoji}
+  </span>
+)}
 
         {!product.available && (
           <span className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#8A5869]">

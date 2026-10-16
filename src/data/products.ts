@@ -41,7 +41,7 @@ export const categories = [
 export const products: Product[] = [
   {
     id: "1",
-    name: "Torta de chocolate",
+    name: "Torta de Quince Años",
     description:
       "Deliciosa torta de chocolate con relleno cremoso, ideal para cumpleaños y celebraciones especiales.",
     category: "Tortas de cumpleaños",
@@ -49,7 +49,9 @@ export const products: Product[] = [
     customizable: true,
     available: true,
     emoji: "🎂",
-    images: [],
+    images: [
+  "/images/products/pastel-15-años.jpg",
+],
     sizes: [
       { id: "small", name: "Pequeña", price: 650 },
       { id: "medium", name: "Mediana", price: 900 },
@@ -66,7 +68,7 @@ export const products: Product[] = [
   },
   {
     id: "2",
-    name: "Torta personalizada",
+    name: "Torta de Mariposas Personalizada",
     description:
       "Una creación especial diseñada según las preferencias y detalles de tu celebración.",
     category: "Tortas personalizadas",
@@ -74,7 +76,9 @@ export const products: Product[] = [
     customizable: true,
     available: true,
     emoji: "🎨",
-    images: [],
+    images: [
+  "/images/products/pastel-de-mariposas.jpg",
+],
     sizes: [],
     options: [
       {
