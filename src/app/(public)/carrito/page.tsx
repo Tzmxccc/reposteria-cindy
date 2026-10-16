@@ -207,14 +207,12 @@ export default function CartPage() {
                 deberán confirmarse al revisar tu solicitud.
               </p>
 
-              <button
-                type="button"
-                disabled
-                className="mt-7 w-full cursor-not-allowed rounded-full bg-[#B84F79] px-6 py-4 text-sm font-semibold text-white opacity-60"
-              >
-                Continuar con el pedido
-              </button>
-
+<Link
+  href="/pedido"
+  className="mt-7 block w-full rounded-full bg-[#B84F79] px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-[#963B61]"
+>
+  Continuar con el pedido
+</Link>
               <p className="mt-3 text-center text-xs text-[#82747B]">
                 Próximamente habilitaremos el formulario de pedido.
               </p>
