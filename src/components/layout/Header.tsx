@@ -1,5 +1,6 @@
 "use client";
 
+import { useCart } from "@/components/cart/CartProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -10,10 +11,12 @@ const links = [
   { label: "Galería", href: "/galeria" },
   { label: "Nosotros", href: "/nosotros" },
   { label: "Contacto", href: "/contacto" },
+  { label: "Carrito", href: "/carrito" },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { itemCount } = useCart();
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#F1E8E9] bg-white/95 backdrop-blur">
