@@ -77,19 +77,20 @@ export default function Header() {
           className="border-t border-[#F1E8E9] bg-white px-5 py-4 md:hidden"
         >
           <div className="flex flex-col gap-4">
-<Link
-  key={link.href}
-  href={link.href}
-  onClick={() => setMenuOpen(false)}
-  className="text-sm font-medium text-[#594D53]"
->
-  {link.label}
-  {link.href === "/carrito" && itemCount > 0 && (
-    <span className="ml-2 rounded-full bg-[#F8EDF1] px-2 py-1 text-xs font-semibold text-[#B84F79]">
-      {itemCount}
-    </span>
-  )}
-</Link>
+{links.map((link) => (
+  <Link
+    key={link.href}
+    href={link.href}
+    className="text-sm font-medium text-[#594D53] transition hover:text-[#C34D7C]"
+  >
+    {link.label}
+    {link.href === "/carrito" && itemCount > 0 && (
+      <span className="ml-1 rounded-full bg-[#F8EDF1] px-2 py-1 text-xs font-semibold text-[#B84F79]">
+        {itemCount}
+      </span>
+    )}
+  </Link>
+))}
           </div>
         </nav>
       )}
