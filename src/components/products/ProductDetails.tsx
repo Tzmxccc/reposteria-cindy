@@ -1,5 +1,6 @@
 "use client";
 
+import { useCart } from "@/components/cart/CartProvider";
 import { useState } from "react";
 import Link from "next/link";
 import type { Product } from "@/data/products";
@@ -9,6 +10,10 @@ type Props = {
 };
 
 export default function ProductDetail({ product }: Props) {
+  const { addItem } = useCart();
+
+const [quantity, setQuantity] = useState(1);
+const [addedMessage, setAddedMessage] = useState("");
   const [selectedSizeId, setSelectedSizeId] = useState(
     product.sizes[0]?.id ?? ""
   );
@@ -27,6 +32,51 @@ export default function ProductDetail({ product }: Props) {
   const currentPrice = selectedSize?.price ?? product.price;
 
   const hasImages = product.images.length > 0;
+  const handleAddToCart = () => {
+  if (
+    !product.available ||
+    currentPrice === null ||
+    !Number.isFinite(currentPrice) ||
+    currentPrice < 0 ||
+    !Number.isSafeInteger(quantity) ||
+    quantity < 1
+  ) {
+    return;
+  }
+
+  const selectedOptionDetails = product.options
+    .filter((option) => selectedOptions[option.id])
+    .map((option) => ({
+      optionId: option.id,
+      optionName: option.name,
+      choice: selectedOptions[option.id],
+    }));
+
+  // Identifica la configuración del producto.
+  const configurationKey = JSON.stringify({
+    productId: product.id,
+    sizeId: selectedSizeId || null,
+    selectedOptions: [...selectedOptionDetails].sort(
+      (a, b) => a.optionId.localeCompare(b.optionId)
+    ),
+    specialInstructions: instructions.trim(),
+  });
+
+  addItem({
+    cartItemId: configurationKey,
+    productId: product.id,
+    productName: product.name,
+    productImage: product.images[0] ?? null,
+    sizeId: selectedSizeId || null,
+    sizeName: selectedSize?.name ?? null,
+    selectedOptions: selectedOptionDetails,
+    specialInstructions: instructions.trim(),
+    quantity,
+    unitPrice: currentPrice,
+  });
+
+  setAddedMessage("¡Producto añadido al carrito!");
+};
 
   const formatPrice = (price: number) =>
     `L ${price.toLocaleString("es-HN")}`;
@@ -150,9 +200,10 @@ export default function ProductDetail({ product }: Props) {
               <select
                 id="product-size"
                 value={selectedSizeId}
-                onChange={(event) =>
-                  setSelectedSizeId(event.target.value)
-                }
+onChange={(event) => {
+  setSelectedSizeId(event.target.value);
+  setAddedMessage("");
+}}
                 className="w-full rounded-xl border border-[#EADCE1] bg-white px-4 py-3 outline-none focus:border-[#B84F79]"
               >
                 {product.sizes.map((size) => (
@@ -183,12 +234,13 @@ export default function ProductDetail({ product }: Props) {
                   <select
                     id={`option-${option.id}`}
                     value={selectedOptions[option.id] ?? ""}
-                    onChange={(event) =>
-                      setSelectedOptions((previous) => ({
-                        ...previous,
-                        [option.id]: event.target.value,
-                      }))
-                    }
+onChange={(event) => {
+  setSelectedOptions((previous) => ({
+    ...previous,
+    [option.id]: event.target.value,
+  }));
+  setAddedMessage("");
+}}  
                     className="w-full rounded-xl border border-[#EADCE1] bg-white px-4 py-3 outline-none focus:border-[#B84F79]"
                   >
                     <option value="">Seleccionar opción</option>
@@ -213,9 +265,10 @@ export default function ProductDetail({ product }: Props) {
                 <textarea
                   id="special-instructions"
                   value={instructions}
-                  onChange={(event) =>
-                    setInstructions(event.target.value)
-                  }
+onChange={(event) => {
+  setInstructions(event.target.value);
+  setAddedMessage("");
+}}
                   rows={4}
                   maxLength={1000}
                   placeholder="Describe los detalles que te gustaría agregar..."
@@ -243,29 +296,80 @@ export default function ProductDetail({ product }: Props) {
             </p>
           </div>
 
-          {/* ACCIÓN */}
-          {product.available ? (
-            <div>
-              <button
-                type="button"
-                disabled
-                className="w-full cursor-not-allowed rounded-full bg-[#B84F79] px-8 py-4 text-sm font-semibold text-white opacity-60"
-              >
-                {currentPrice === null
-                  ? "Solicitar cotización"
-                  : "Añadir al carrito"}
-              </button>
+{product.available && currentPrice !== null && (
+  <div className="mb-8">
+    <label
+      htmlFor="product-quantity"
+      className="mb-3 block text-sm font-semibold"
+    >
+      Cantidad
+    </label>
 
-              <p className="mt-3 text-center text-xs text-[#82747B]">
-                Esta función estará disponible cuando
-                implementemos el sistema de pedidos.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-xl bg-[#F2E9EC] p-5 text-center text-sm text-[#8D5368]">
-              Este producto no está disponible actualmente.
-            </div>
-          )}
+    <select
+      id="product-quantity"
+      value={quantity}
+      onChange={(event) => {
+        setQuantity(Number(event.target.value));
+        setAddedMessage("");
+      }}
+      className="w-full rounded-xl border border-[#EADCE1] bg-white px-4 py-3 outline-none focus:border-[#B84F79]"
+    >
+      {Array.from({ length: 10 }, (_, index) => index + 1).map(
+        (value) => (
+          <option key={value} value={value}>
+            {value}
+          </option>
+        )
+      )}
+    </select>
+  </div>
+)}
+{/* ACCIÓN */}
+{!product.available ? (
+  <div className="rounded-xl bg-[#F2E9EC] p-5 text-center text-sm text-[#8D5368]">
+    Este producto no está disponible actualmente.
+  </div>
+) : currentPrice === null ? (
+  <div className="rounded-2xl border border-[#F0E6E9] p-5">
+    <p className="mb-4 text-sm leading-6 text-[#766A70]">
+      Este producto requiere una cotización personalizada.
+      Próximamente podrás enviar tu solicitud desde aquí.
+    </p>
+
+    <button
+      type="button"
+      disabled
+      className="w-full cursor-not-allowed rounded-full bg-[#B84F79] px-8 py-4 text-sm font-semibold text-white opacity-60"
+    >
+      Solicitar cotización
+    </button>
+  </div>
+) : (
+  <div>
+    <button
+      type="button"
+      onClick={handleAddToCart}
+      className="w-full rounded-full bg-[#B84F79] px-8 py-4 text-sm font-semibold text-white transition hover:bg-[#963B61]"
+    >
+      Añadir al carrito
+    </button>
+
+    {addedMessage && (
+      <div
+        role="status"
+        aria-live="polite"
+        className="mt-4 rounded-xl bg-[#EDF7F0] px-5 py-4 text-sm font-medium text-[#35734A]"
+      >
+        {addedMessage}
+      </div>
+    )}
+
+    <p className="mt-3 text-center text-xs text-[#82747B]">
+      El precio es provisional. La disponibilidad y el importe
+      final se confirmarán al revisar tu solicitud.
+    </p>
+  </div>
+)}
         </section>
       </div>
     </main>
