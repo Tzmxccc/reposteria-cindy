@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  getMinimumLeadTime,
+  validatePickupDate,
+} from "@/lib/orderValidation";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
@@ -32,6 +36,8 @@ export default function OrderPage() {
   });
 
   const [validated, setValidated] = useState(false);
+  const [pickupError, setPickupError] = useState("");
+  const minimumLeadTimeHours = getMinimumLeadTime(items);
 
   const updateCustomer = (
     field: "name" | "phone",
@@ -47,31 +53,44 @@ export default function OrderPage() {
     }));
   };
 
-  const updatePickup = (
-    field: "requestedDate" | "requestedTime",
-    value: string
-  ) => {
+const updatePickup = (
+  field: "requestedDate" | "requestedTime",
+  value: string
+) => {
+  setValidated(false);
+  setPickupError("");
+
+  setForm((previous) => ({
+    ...previous,
+    pickup: {
+      ...previous.pickup,
+      [field]: value,
+    },
+  }));
+};
+
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  if (items.length === 0) {
+    return;
+  }
+
+  const result = validatePickupDate(
+    form.pickup.requestedDate,
+    form.pickup.requestedTime,
+    items
+  );
+
+  if (!result.valid) {
     setValidated(false);
-    setForm((previous) => ({
-      ...previous,
-      pickup: {
-        ...previous.pickup,
-        [field]: value,
-      },
-    }));
-  };
+    setPickupError(result.message);
+    return;
+  }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (items.length === 0) {
-      return;
-    }
-
-    // Por ahora solo validamos el formulario.
-    // No se registra ni envía ningún pedido.
-    setValidated(true);
-  };
+  setPickupError("");
+  setValidated(true);
+};
 
   if (items.length === 0) {
     return (
@@ -180,6 +199,7 @@ export default function OrderPage() {
             </section>
 
             {/* RECOGIDA */}
+                    
             <section>
               <h2 className="mb-6 font-serif text-2xl">
                 Fecha y hora de recogida
@@ -238,6 +258,26 @@ export default function OrderPage() {
                 La fecha y hora solicitadas deberán ser
                 revisadas y confirmadas por nuestro equipo.
               </p>
+              <div className="mt-5 rounded-xl bg-[#FAF1F4] p-4">
+  <p className="text-sm font-semibold text-[#342B30]">
+    Anticipación mínima de tu pedido
+  </p>
+
+  <p className="mt-2 text-sm text-[#766A70]">
+    {minimumLeadTimeHours === 0
+      ? "No hay una anticipación mínima adicional configurada."
+      : `${minimumLeadTimeHours} horas antes de la recogida.`}
+  </p>
+</div>
+
+{pickupError && (
+  <div
+    role="alert"
+    className="mt-4 rounded-xl border border-[#E7B8C5] bg-[#FFF0F3] p-4 text-sm text-[#A33E60]"
+  >
+    {pickupError}
+  </div>
+)}
             </section>
 
             {/* PAGO */}
@@ -290,6 +330,26 @@ export default function OrderPage() {
                 después de revisar tu solicitud. No se
                 realizará ningún cobro en esta página.
               </p>
+              <div className="mt-5 rounded-xl bg-[#FAF1F4] p-4">
+  <p className="text-sm font-semibold text-[#342B30]">
+    Anticipación mínima de tu pedido
+  </p>
+
+  <p className="mt-2 text-sm text-[#766A70]">
+    {minimumLeadTimeHours === 0
+      ? "No hay una anticipación mínima adicional configurada."
+      : `${minimumLeadTimeHours} horas antes de la recogida.`}
+  </p>
+</div>
+
+{pickupError && (
+  <div
+    role="alert"
+    className="mt-4 rounded-xl border border-[#E7B8C5] bg-[#FFF0F3] p-4 text-sm text-[#A33E60]"
+  >
+    {pickupError}
+  </div>
+)}
             </section>
 
             {/* OBSERVACIONES */}
