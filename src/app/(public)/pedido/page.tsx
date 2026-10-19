@@ -37,6 +37,7 @@ export default function OrderPage() {
 
   const [validated, setValidated] = useState(false);
   const [pickupError, setPickupError] = useState("");
+  const [showReview, setShowReview] = useState(false);
   const minimumLeadTimeHours = getMinimumLeadTime(items);
 
   const updateCustomer = (
@@ -44,6 +45,7 @@ export default function OrderPage() {
     value: string
   ) => {
     setValidated(false);
+    setShowReview(false);
     setForm((previous) => ({
       ...previous,
       customer: {
@@ -58,6 +60,7 @@ const updatePickup = (
   value: string
 ) => {
   setValidated(false);
+  setShowReview(false);
   setPickupError("");
 
   setForm((previous) => ({
@@ -88,8 +91,9 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     return;
   }
 
-  setPickupError("");
-  setValidated(true);
+setPickupError("");
+setValidated(true);
+setShowReview(true);
 };
 
   if (items.length === 0) {
@@ -312,6 +316,7 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
                       }
                       onChange={() => {
                         setValidated(false);
+                        setShowReview(false);
                         setForm((previous) => ({
                           ...previous,
                           paymentMethod: method.value,
@@ -368,6 +373,7 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
                 value={form.notes}
                 onChange={(event) => {
                   setValidated(false);
+                  setShowReview(false);
                   setForm((previous) => ({
                     ...previous,
                     notes: event.target.value,
@@ -385,18 +391,126 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
               Revisar datos de la solicitud
             </button>
 
-            {validated && (
-              <div
-                role="status"
-                className="rounded-xl border border-[#CDE6D3] bg-[#EDF7F0] p-5 text-sm leading-7 text-[#35734A]"
-              >
-                <strong>Formulario validado correctamente.</strong>
-                <p>
-                  Esta es una prueba. Tu solicitud todavía
-                  no ha sido enviada ni registrada.
-                </p>
-              </div>
+{validated && showReview && (
+  <section className="rounded-2xl border border-[#EADCE1] bg-[#FFFCFB] p-6">
+    <h2 className="mb-5 font-serif text-2xl">
+      Revisión final de tu solicitud
+    </h2>
+
+    <div className="space-y-3 text-sm leading-7">
+      <p>
+        <strong>Nombre:</strong>{" "}
+        {form.customer.name}
+      </p>
+
+      <p>
+        <strong>Teléfono o WhatsApp:</strong>{" "}
+        {form.customer.phone}
+      </p>
+
+      <p>
+        <strong>Fecha de recogida:</strong>{" "}
+        {form.pickup.requestedDate}
+      </p>
+
+      <p>
+        <strong>Hora de recogida:</strong>{" "}
+        {form.pickup.requestedTime}
+      </p>
+
+      <p>
+        <strong>Método de pago:</strong>{" "}
+        {form.paymentMethod === "cash"
+          ? "Efectivo en tienda"
+          : "Transferencia o depósito bancario"}
+      </p>
+
+      {form.notes.trim() && (
+        <p className="break-words">
+          <strong>Observaciones:</strong>{" "}
+          {form.notes}
+        </p>
+      )}
+    </div>
+
+    <div className="mt-6 border-t border-[#EADCE1] pt-5">
+      <h3 className="mb-4 font-semibold">
+        Productos seleccionados
+      </h3>
+
+      <div className="space-y-4">
+        {items.map((item) => (
+          <div key={item.cartItemId} className="text-sm">
+            <p className="font-semibold">
+              {item.productName} × {item.quantity}
+            </p>
+
+            {item.sizeName && (
+              <p className="text-[#766A70]">
+                Tamaño: {item.sizeName}
+              </p>
             )}
+
+            {item.selectedOptions.map((option) => (
+              <p
+                key={option.optionId}
+                className="text-[#766A70]"
+              >
+                {option.optionName}: {option.choice}
+              </p>
+            ))}
+
+            {item.specialInstructions && (
+              <p className="break-words text-[#766A70]">
+                Instrucciones: {item.specialInstructions}
+              </p>
+            )}
+
+            <p className="mt-1 font-semibold">
+              {formatPrice(item.unitPrice * item.quantity)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex justify-between border-t border-[#EADCE1] pt-4 font-semibold">
+        <span>Subtotal provisional</span>
+        <span>{formatPrice(subtotal)}</span>
+      </div>
+    </div>
+
+    <p className="mt-6 text-sm leading-6 text-[#766A70]">
+      La fecha, disponibilidad, precio final y anticipo
+      estarán sujetos a revisión por Repostería Cindy.
+    </p>
+
+    <div className="mt-6 flex flex-wrap gap-3">
+      <button
+        type="button"
+        onClick={() => {
+          setShowReview(false);
+          setValidated(false);
+        }}
+        className="rounded-full border border-[#EADCE1] px-6 py-3 text-sm font-semibold hover:bg-[#FAF1F4]"
+      >
+        Editar datos
+      </button>
+
+      <button
+        type="button"
+        disabled
+        className="cursor-not-allowed rounded-full bg-[#B84F79] px-6 py-3 text-sm font-semibold text-white opacity-60"
+      >
+        Enviar solicitud
+      </button>
+    </div>
+
+    <p className="mt-3 text-xs text-[#82747B]">
+      El envío se habilitará cuando implementemos
+      el registro seguro de pedidos.
+    </p>
+  </section>
+)}  
           </form>
 
           {/* RESUMEN */}
