@@ -22,5 +22,5 @@ function getAdminApp() {
 }
 
 export function getAdminDb() {
-  return getFirestore(getAdminApp());
+  return getFirestore(getAdminApp(), "default");
 }
