@@ -83,6 +83,61 @@ const updatePickup = (
 const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
   event.preventDefault();
 
+  if (submittedOrderId) {
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <div className="rounded-3xl border border-[#E9DDE2] bg-white p-8 text-center shadow-sm sm:p-12">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#FCE8EF] text-3xl">
+          ✓
+        </div>
+
+        <h1 className="text-3xl font-semibold text-[#49343D]">
+          ¡Recibimos tu solicitud!
+        </h1>
+
+        <p className="mt-4 text-[#75646C]">
+          Tu solicitud de pedido fue registrada correctamente.
+        </p>
+
+        <div className="mt-8 rounded-2xl bg-[#FFF5F8] p-5">
+          <p className="text-sm text-[#75646C]">
+            Número de solicitud
+          </p>
+
+          <p className="mt-2 break-all font-mono text-lg font-semibold text-[#A33E60]">
+            {submittedOrderId}
+          </p>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-[#F1D6DF] bg-[#FFFAFC] p-5 text-left">
+          <h2 className="font-semibold text-[#49343D]">
+            ¿Qué sucede ahora?
+          </h2>
+
+          <p className="mt-3 text-sm leading-7 text-[#75646C]">
+            Nuestro equipo revisará tu solicitud, verificará la
+            disponibilidad y confirmará los detalles mediante
+            WhatsApp o teléfono.
+          </p>
+
+          <p className="mt-3 text-sm font-medium text-[#A33E60]">
+            Importante: tu pedido todavía no está confirmado.
+            No realices ningún anticipo hasta recibir
+            instrucciones de nuestro equipo.
+          </p>
+        </div>
+
+        <a
+          href="/catalogo"
+          className="mt-8 inline-flex rounded-full bg-[#B84F79] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#963B61]"
+        >
+          Volver al catálogo
+        </a>
+      </div>
+    </main>
+  );
+}
+  
   if (items.length === 0) {
     return;
   }
@@ -157,9 +212,14 @@ const sendOrder = async () => {
       );
     }
 
-    setSubmittedOrderId(result.orderId);
-    setShowReview(false);
-    setValidated(false);
+ setSubmittedOrderId(result.orderId);
+
+// Vaciar el carrito únicamente después de recibir
+// la confirmación del servidor.
+clearCart();
+
+setShowReview(false);
+setValidated(false);
 
   } catch (error) {
     const message =
