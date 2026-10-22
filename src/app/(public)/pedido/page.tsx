@@ -12,6 +12,7 @@ import type {
   OrderRequest,
   PaymentMethod,
 } from "@/types/order";
+import type { CreateOrderRequest } from "@/types/orderRequest";
 
 const formatPrice = (price: number) =>
   `L ${price.toLocaleString("es-HN", {
@@ -20,7 +21,7 @@ const formatPrice = (price: number) =>
   })}`;
 
 export default function OrderPage() {
-  const { items, itemCount, subtotal } = useCart();
+const { items, itemCount, subtotal, clearCart } = useCart();
 
   const [form, setForm] = useState<OrderRequest>({
     customer: {
@@ -38,6 +39,13 @@ export default function OrderPage() {
   const [validated, setValidated] = useState(false);
   const [pickupError, setPickupError] = useState("");
   const [showReview, setShowReview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+const [submitError, setSubmitError] = useState("");
+
+const [submittedOrderId, setSubmittedOrderId] = useState<string | null>(
+  null
+);
   const minimumLeadTimeHours = getMinimumLeadTime(items);
 
   const updateCustomer = (
@@ -94,6 +102,75 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 setPickupError("");
 setValidated(true);
 setShowReview(true);
+};
+
+const sendOrder = async () => {
+  if (isSubmitting || !validated || !showReview || items.length === 0) {
+    return;
+  }
+
+  setIsSubmitting(true);
+  setSubmitError("");
+
+  try {
+    const orderData: CreateOrderRequest = {
+      customerName: form.customer.name.trim(),
+      customerPhone: form.customer.phone.trim(),
+
+      requestedPickupDate: form.pickup.requestedDate,
+      requestedPickupTime: form.pickup.requestedTime,
+
+      paymentMethod: form.paymentMethod,
+      notes: form.notes.trim(),
+
+      items: items.map((item) => ({
+        productId: item.productId,
+        sizeId: item.sizeId,
+
+        selectedOptions: item.selectedOptions.map((option) => ({
+          optionId: option.optionId,
+          choice: option.choice,
+        })),
+
+        specialInstructions: item.specialInstructions,
+        quantity: item.quantity,
+      })),
+    };
+
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orderData),
+    });
+
+    const result: {
+      success: boolean;
+      error?: string;
+      orderId?: string;
+    } = await response.json();
+
+    if (!response.ok || !result.success || !result.orderId) {
+      throw new Error(
+        result.error ?? "No fue posible registrar la solicitud."
+      );
+    }
+
+    setSubmittedOrderId(result.orderId);
+    setShowReview(false);
+    setValidated(false);
+
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Ocurrió un error inesperado.";
+
+    setSubmitError(message);
+  } finally {
+    setIsSubmitting(false);
+  }
 };
 
   if (items.length === 0) {
@@ -496,19 +573,25 @@ setShowReview(true);
         Editar datos
       </button>
 
-      <button
-        type="button"
-        disabled
-        className="cursor-not-allowed rounded-full bg-[#B84F79] px-6 py-3 text-sm font-semibold text-white opacity-60"
-      >
-        Enviar solicitud
-      </button>
+<button
+  type="button"
+  onClick={sendOrder}
+  disabled={isSubmitting}
+  className="rounded-full bg-[#B84F79] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#963B61] disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {isSubmitting ? "Enviando solicitud..." : "Enviar solicitud"}
+</button>
     </div>
 
-    <p className="mt-3 text-xs text-[#82747B]">
-      El envío se habilitará cuando implementemos
-      el registro seguro de pedidos.
-    </p>
+{submitError && (
+  <div
+    role="alert"
+    className="mt-4 rounded-xl border border-[#E7B8C5] bg-[#FFF0F3] p-4 text-sm text-[#A33E60]"
+  >
+    {submitError}
+  </div>
+)}
+
   </section>
 )}  
           </form>
