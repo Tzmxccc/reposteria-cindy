@@ -26,6 +26,19 @@ export function validateOrderRequest(
     };
   }
 
+  // Validar el identificador único de la solicitud.
+if (
+  typeof request.requestId !== "string" ||
+  !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    request.requestId
+  )
+) {
+  return {
+    success: false,
+    error: "El identificador de la solicitud no es válido.",
+  };
+}
+
   if (
     typeof request.customerName !== "string" ||
     request.customerName.trim().length < 2 ||
@@ -140,15 +153,16 @@ export function validateOrderRequest(
     };
   }
 
-  return {
-    success: true,
-    data: {
-      customerName: request.customerName.trim(),
-      customerPhone: request.customerPhone.trim(),
-      requestedPickupDate: date,
-      requestedPickupTime: time,
-      paymentMethod: request.paymentMethod,
-      notes: request.notes.trim(),
-    },
-  };
+return {
+  success: true,
+  data: {
+    requestId: request.requestId,
+    customerName: request.customerName.trim(),
+    customerPhone: request.customerPhone.trim(),
+    requestedPickupDate: date,
+    requestedPickupTime: time,
+    paymentMethod: request.paymentMethod,
+    notes: request.notes.trim(),
+  },
+};
 }

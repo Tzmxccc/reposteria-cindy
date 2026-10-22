@@ -17,4 +17,5 @@ export type CreateOrderRequest = {
   paymentMethod: "cash" | "bank_transfer";
   notes: string;
   items: OrderRequestItem[];
+  requestId: string;
 };

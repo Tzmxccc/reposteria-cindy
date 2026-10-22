@@ -13,6 +13,10 @@ import type {
   PaymentMethod,
 } from "@/types/order";
 import type { CreateOrderRequest } from "@/types/orderRequest";
+import {
+  getOrCreateOrderRequestId,
+  clearOrderRequestId,
+} from "@/lib/orderRequestId";
 
 const formatPrice = (price: number) =>
   `L ${price.toLocaleString("es-HN", {
@@ -115,29 +119,33 @@ const sendOrder = async () => {
   setSubmitError("");
 
   try {
-    const orderData: CreateOrderRequest = {
-      customerName: form.customer.name.trim(),
-      customerPhone: form.customer.phone.trim(),
 
-      requestedPickupDate: form.pickup.requestedDate,
-      requestedPickupTime: form.pickup.requestedTime,
+const orderPayload = {
+  customerName: form.customer.name.trim(),
+  customerPhone: form.customer.phone.trim(),
+  requestedPickupDate: form.pickup.requestedDate,
+  requestedPickupTime: form.pickup.requestedTime,
+  paymentMethod: form.paymentMethod,
+  notes: form.notes.trim(),
+  items: items.map((item) => ({
+    productId: item.productId,
+    sizeId: item.sizeId,
+    selectedOptions: item.selectedOptions.map((option) => ({
+      optionId: option.optionId,
+      choice: option.choice,
+    })),
+    specialInstructions: item.specialInstructions,
+    quantity: item.quantity,
+  })),
+};
 
-      paymentMethod: form.paymentMethod,
-      notes: form.notes.trim(),
+const fingerprint = JSON.stringify(orderPayload);
 
-      items: items.map((item) => ({
-        productId: item.productId,
-        sizeId: item.sizeId,
+const orderData: CreateOrderRequest = {
+  requestId: getOrCreateOrderRequestId(fingerprint),
+  ...orderPayload,
+};
 
-        selectedOptions: item.selectedOptions.map((option) => ({
-          optionId: option.optionId,
-          choice: option.choice,
-        })),
-
-        specialInstructions: item.specialInstructions,
-        quantity: item.quantity,
-      })),
-    };
 
     const response = await fetch("/api/orders", {
       method: "POST",
@@ -159,10 +167,10 @@ const sendOrder = async () => {
       );
     }
 
- setSubmittedOrderId(result.orderId);
+setSubmittedOrderId(result.orderId);
 
-// Vaciar el carrito únicamente después de recibir
-// la confirmación del servidor.
+// El pedido fue registrado correctamente.
+clearOrderRequestId();
 clearCart();
 
 setShowReview(false);
