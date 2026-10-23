@@ -44,6 +44,7 @@ const { items, itemCount, subtotal, clearCart } = useCart();
   const [pickupError, setPickupError] = useState("");
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderIdCopied, setOrderIdCopied] = useState(false);
 
 const [submitError, setSubmitError] = useState("");
 
@@ -256,9 +257,33 @@ setValidated(false);
             Número de solicitud
           </p>
 
-          <p className="mt-2 break-all font-mono text-lg font-semibold text-[#A33E60]">
-            {submittedOrderId}
-          </p>
+
+<p className="mt-2 break-all font-mono text-sm font-semibold leading-6 text-[#A33E60] sm:text-lg">
+  {submittedOrderId}
+</p>
+
+          
+
+<button
+  type="button"
+  onClick={async () => {
+    try {
+      await navigator.clipboard.writeText(submittedOrderId);
+      setOrderIdCopied(true);
+    } catch {
+      setOrderIdCopied(false);
+      alert(
+        "No fue posible copiar el número automáticamente. " +
+          "Puedes seleccionarlo y copiarlo manualmente."
+      );
+    }
+  }}
+  className="mt-4 inline-flex items-center justify-center rounded-full border border-[#E8B8C9] bg-white px-5 py-2 text-sm font-semibold text-[#A33E60] transition hover:bg-[#FFF5F8]"
+>
+  {orderIdCopied ? "✓ ¡Copiado!" : "Copiar número de solicitud"}
+</button>
+
+
         </div>
 
         <div className="mt-8 rounded-2xl border border-[#F1D6DF] bg-[#FFFAFC] p-5 text-left">
