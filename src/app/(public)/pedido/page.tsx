@@ -239,6 +239,17 @@ setValidated(false);
         <p className="mt-4 text-[#75646C]">
           Tu solicitud de pedido fue registrada correctamente.
         </p>
+        
+<div className="mt-5 flex justify-center">
+  <span className="inline-flex items-center gap-2 rounded-full border border-[#F1D6DF] bg-[#FFF5F8] px-4 py-2 text-sm font-semibold text-[#A33E60]">
+    <span
+      className="h-2 w-2 rounded-full bg-[#B84F79]"
+      aria-hidden="true"
+    />
+    Estado: Pendiente de revisión
+  </span>
+</div>
+
 
         <div className="mt-8 rounded-2xl bg-[#FFF5F8] p-5">
           <p className="text-sm text-[#75646C]">
