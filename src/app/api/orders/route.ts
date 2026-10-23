@@ -89,9 +89,82 @@ export async function POST(request: NextRequest) {
     // 4. Usar requestId como identificador del documento.
     const db = getAdminDb();
 
+    
+const clientIdentity = getRequestClientIdentity(request);
+
+if (!clientIdentity.available) {
+  console.error(
+    "Identificación del cliente no disponible:",
+    clientIdentity.reason
+  );
+
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "El servicio de pedidos no está disponible temporalmente.",
+    },
+    { status: 503 }
+  );
+}
+
+
     const orderId = customerResult.data.requestId;
 
     const documentReference = db.collection("orders").doc(orderId);
+    
+const existingOrder = await documentReference.get();
+
+if (existingOrder.exists) {
+  const existingFingerprint = existingOrder.get("fingerprint");
+
+  if (
+    typeof existingFingerprint !== "string" ||
+    existingFingerprint !== fingerprint
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Este identificador ya pertenece a una solicitud diferente.",
+      },
+      { status: 409 }
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Esta solicitud ya había sido registrada.",
+      orderId,
+      alreadyExists: true,
+    },
+    { status: 200 }
+  );
+}
+
+const rateLimitResult = await checkOrderRateLimit(
+  db,
+  clientIdentity.key
+);
+
+if (!rateLimitResult.allowed) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Has realizado demasiadas solicitudes. Intenta nuevamente más tarde.",
+      retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+    },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(rateLimitResult.retryAfterSeconds),
+      },
+    }
+  );
+}
+
 
     try {
       // create() falla si el documento ya existe.

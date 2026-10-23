@@ -159,13 +159,49 @@ const orderData: CreateOrderRequest = {
       success: boolean;
       error?: string;
       orderId?: string;
+      retryAfterSeconds?: number;
     } = await response.json();
 
-    if (!response.ok || !result.success || !result.orderId) {
-      throw new Error(
-        result.error ?? "No fue posible registrar la solicitud."
-      );
-    }
+ 
+
+if (response.status === 429) {
+  const seconds = result.retryAfterSeconds;
+
+  const minutes =
+    typeof seconds === "number" &&
+    Number.isFinite(seconds) &&
+    seconds > 0
+      ? Math.ceil(seconds / 60)
+      : null;
+
+  const waitMessage =
+    minutes !== null
+      ? `Espera aproximadamente ${minutes} ${
+          minutes === 1 ? "minuto" : "minutos"
+        } antes de intentarlo nuevamente.`
+      : "Espera unos minutos antes de intentarlo nuevamente.";
+
+  throw new Error(
+    "Has alcanzado el límite de solicitudes de pedido. " +
+      waitMessage +
+      " Tu carrito se conservará."
+  );
+}
+
+
+if (response.status === 503) {
+  throw new Error(
+    "El servicio de pedidos no está disponible temporalmente. " +
+      "Intenta nuevamente más tarde."
+  );
+}
+
+if (!response.ok || !result.success || !result.orderId) {
+  throw new Error(
+    result.error ?? "No fue posible registrar la solicitud."
+  );
+}
+
 
 setSubmittedOrderId(result.orderId);
 
