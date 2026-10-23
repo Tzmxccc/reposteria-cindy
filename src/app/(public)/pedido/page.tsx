@@ -189,14 +189,18 @@ if (response.status === 429) {
   );
 }
 
+
 if (response.status === 409) {
+  clearOrderRequestId();
+
   throw new Error(
-    "Se detectó un conflicto al registrar tu solicitud. " +
-      "No se ha confirmado un nuevo pedido. " +
+    "Se detectó un conflicto con el identificador de tu solicitud. " +
+      "No se registró un nuevo pedido en este intento. " +
       "Tus productos permanecen en el carrito. " +
-      "Contacta con Repostería Cindy si el problema continúa."
+      "Puedes intentar enviarlo nuevamente."
   );
 }
+
 
 if (!response.ok || !result.success || !result.orderId) {
   throw new Error(
