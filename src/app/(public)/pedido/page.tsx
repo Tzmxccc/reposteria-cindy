@@ -189,11 +189,12 @@ if (response.status === 429) {
   );
 }
 
-
-if (response.status === 503) {
+if (response.status === 409) {
   throw new Error(
-    "El servicio de pedidos no está disponible temporalmente. " +
-      "Intenta nuevamente más tarde."
+    "Se detectó un conflicto al registrar tu solicitud. " +
+      "No se ha confirmado un nuevo pedido. " +
+      "Tus productos permanecen en el carrito. " +
+      "Contacta con Repostería Cindy si el problema continúa."
   );
 }
 
