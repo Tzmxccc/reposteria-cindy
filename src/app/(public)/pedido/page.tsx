@@ -1,10 +1,14 @@
 "use client";
-
+import {
+  loadSavedOrderForm,
+  saveOrderForm,
+  clearSavedOrderForm,
+} from "@/lib/orderFormStorage";
 import {
   getMinimumLeadTime,
   validatePickupDate,
 } from "@/lib/orderValidation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { useCart } from "@/components/cart/CartProvider";
@@ -40,6 +44,21 @@ const { items, itemCount, subtotal, clearCart } = useCart();
     notes: "",
   });
 
+  const [formLoaded, setFormLoaded] = useState(false);
+  
+
+useEffect(() => {
+  const savedForm = loadSavedOrderForm();
+
+  if (savedForm) {
+    setForm(savedForm);
+  }
+
+  setFormLoaded(true);
+}, []);
+
+
+
   const [validated, setValidated] = useState(false);
   const [pickupError, setPickupError] = useState("");
   const [showReview, setShowReview] = useState(false);
@@ -51,6 +70,39 @@ const [submitError, setSubmitError] = useState("");
 const [submittedOrderId, setSubmittedOrderId] = useState<string | null>(
   null
 );
+
+useEffect(() => {
+  if (!formLoaded || submittedOrderId) {
+    return;
+  }
+
+  saveOrderForm(form);
+}, [form, formLoaded, submittedOrderId]);
+
+
+const resetOrderForm = () => {
+  clearSavedOrderForm();
+
+  setForm({
+    customer: {
+      name: "",
+      phone: "",
+    },
+    pickup: {
+      requestedDate: "",
+      requestedTime: "",
+    },
+    paymentMethod: "cash",
+    notes: "",
+  });
+
+  setValidated(false);
+  setShowReview(false);
+  setPickupError("");
+  setSubmitError("");
+};
+
+
   const minimumLeadTimeHours = getMinimumLeadTime(items);
 
   const updateCustomer = (
@@ -59,6 +111,7 @@ const [submittedOrderId, setSubmittedOrderId] = useState<string | null>(
   ) => {
     setValidated(false);
     setShowReview(false);
+    setSubmitError("");
     setForm((previous) => ({
       ...previous,
       customer: {
@@ -75,7 +128,7 @@ const updatePickup = (
   setValidated(false);
   setShowReview(false);
   setPickupError("");
-
+  setSubmitError("");
   setForm((previous) => ({
     ...previous,
     pickup: {
@@ -208,15 +261,16 @@ if (!response.ok || !result.success || !result.orderId) {
   );
 }
 
-
 setSubmittedOrderId(result.orderId);
 
 // El pedido fue registrado correctamente.
 clearOrderRequestId();
+clearSavedOrderForm();
 clearCart();
 
 setShowReview(false);
 setValidated(false);
+
 
   } catch (error) {
     const message =
@@ -614,6 +668,27 @@ setValidated(false);
             >
               Revisar datos de la solicitud
             </button>
+
+            
+<button
+  type="button"
+  
+onClick={() => {
+  const confirmed = window.confirm(
+    "¿Deseas borrar los datos del formulario? Los productos de tu carrito se conservarán."
+  );
+
+  if (confirmed) {
+    resetOrderForm();
+  }
+}}
+
+  disabled={isSubmitting}
+  className="w-full rounded-full border border-[#EADCE1] bg-white px-7 py-3 text-sm font-semibold text-[#A33E60] transition hover:bg-[#FFF5F8] disabled:cursor-not-allowed disabled:opacity-60"
+>
+  Borrar datos del formulario
+</button>
+
 
 {validated && showReview && (
   <section className="rounded-2xl border border-[#EADCE1] bg-[#FFFCFB] p-6">
