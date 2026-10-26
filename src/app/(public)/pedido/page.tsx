@@ -102,6 +102,13 @@ const resetOrderForm = () => {
   setSubmitError("");
 };
 
+useEffect(() => {
+  setValidated(false);
+  setShowReview(false);
+  setPickupError("");
+  setSubmitError("");
+}, [items]);
+
 
   const minimumLeadTimeHours = getMinimumLeadTime(items);
 
@@ -594,7 +601,8 @@ setValidated(false);
                       }
                       onChange={() => {
                         setValidated(false);
-                        setShowReview(false);
+                        setShowReview(false);     
+                        setSubmitError("");
                         setForm((previous) => ({
                           ...previous,
                           paymentMethod: method.value,
@@ -652,6 +660,7 @@ setValidated(false);
                 onChange={(event) => {
                   setValidated(false);
                   setShowReview(false);
+                  setSubmitError("");
                   setForm((previous) => ({
                     ...previous,
                     notes: event.target.value,
