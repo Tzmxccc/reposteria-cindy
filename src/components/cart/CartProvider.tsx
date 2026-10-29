@@ -120,6 +120,7 @@ export function CartProvider({
     }
 
     try {  
+        
 const serializedCart = JSON.stringify(items);
 
 if (localStorage.getItem(STORAGE_KEY) !== serializedCart) {
