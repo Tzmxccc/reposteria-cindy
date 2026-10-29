@@ -60,6 +60,7 @@ useEffect(() => {
 
 
   const [validated, setValidated] = useState(false);
+  const [reviewedCartFingerprint, setReviewedCartFingerprint] = useState<string | null>(null);
   const [pickupError, setPickupError] = useState("");
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,7 +110,9 @@ useEffect(() => {
   setSubmitError("");
 }, [items]);
 
-
+const cartMatchesReview =
+  reviewedCartFingerprint !== null &&
+  reviewedCartFingerprint === JSON.stringify(items);
   const minimumLeadTimeHours = getMinimumLeadTime(items);
 
   const updateCustomer = (
@@ -167,14 +170,33 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
   }
 
 setPickupError("");
+setReviewedCartFingerprint(JSON.stringify(items));
 setValidated(true);
 setShowReview(true);
 };
 
 const sendOrder = async () => {
-  if (isSubmitting || !validated || !showReview || items.length === 0) {
-    return;
-  }
+  
+if (
+  isSubmitting ||
+  !validated ||
+  !showReview ||
+  items.length === 0 ||
+  !cartMatchesReview
+) {
+  return;
+}
+
+const savedCart = localStorage.getItem("reposteria-cindy-cart");
+
+if (savedCart !== JSON.stringify(items)) {
+  setValidated(false);
+  setShowReview(false);
+  setSubmitError(
+    "El carrito cambió en otra pestaña. Revisa nuevamente tu solicitud."
+  );
+  return;
+}
 
   setIsSubmitting(true);
   setSubmitError("");
@@ -698,8 +720,7 @@ onClick={() => {
   Borrar datos del formulario
 </button>
 
-
-{validated && showReview && (
+{validated && showReview && cartMatchesReview && (
   <section className="rounded-2xl border border-[#EADCE1] bg-[#FFFCFB] p-6">
     <h2 className="mb-5 font-serif text-2xl">
       Revisión final de tu solicitud

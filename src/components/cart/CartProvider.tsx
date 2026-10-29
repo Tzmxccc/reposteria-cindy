@@ -99,12 +99,32 @@ export function CartProvider({
   }, []);
 
   useEffect(() => {
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key !== STORAGE_KEY) {
+      return;
+    }
+
+    setItems(loadCart());
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+
+  return () => {
+    window.removeEventListener("storage", handleStorageChange);
+  };
+}, []);
+
+  useEffect(() => {
     if (!loaded) {
       return;
     }
 
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try {  
+const serializedCart = JSON.stringify(items);
+
+if (localStorage.getItem(STORAGE_KEY) !== serializedCart) {
+  localStorage.setItem(STORAGE_KEY, serializedCart);
+}
     } catch {
       // El carrito seguirá funcionando durante la sesión.
     }
